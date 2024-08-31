@@ -150,3 +150,5 @@
 #define EVIL_FAX_TRAIT "evil_fax"
 #define CORGI_HARDSUIT_TRAIT "corgi_hardsuit"
 
+#define VENDOR_FLATTENING_TRAIT "vendor_flattening"
+
