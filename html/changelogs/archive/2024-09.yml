@@ -7,3 +7,18 @@
   - add: locator_pod (#5824)
   Sheya:
   - bugfix: lockers (#5840)
+'2024-09-02':
+  Aziz Chynaliev:
+  - add: new shoves impact + brand intelligence tweaks (#5608) [testmerge]
+  - unknown: goon vampire and new vampire now has common code (#5604) [testmerge]
+  - unknown: title menu (#5819) [testmerge]
+  - refactor: Eatable component & stacks are now eatable & species special diet. (#5843)
+      [testmerge]
+  Den109G:
+  - bugfix: Now mine checks for both legs, not just left ones (#5845)
+  Mahimka42:
+  - add: Anti-epidemic equipment crate (#5842)
+  Sheya:
+  - bugfix: lockers 2 (#5847)
+  Valtor:
+  - bugfix: vox passive health regen (#5846)
