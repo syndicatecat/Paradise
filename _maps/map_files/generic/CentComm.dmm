@@ -50881,7 +50881,7 @@
 	id_tag = "gamma shuttle";
 	layer = 5;
 	locked = 1;
-	name = "CentCom SOO Briefing"
+	name = "Gamma shuttle shutters"
 	},
 /turf/simulated/floor/plasteel{
 	icon_state = "dark"
