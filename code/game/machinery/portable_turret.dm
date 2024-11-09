@@ -1061,6 +1061,8 @@ GLOBAL_LIST_EMPTY(turret_icons)
 	if(istype(depotarea))
 		depotarea.turret_died()
 
+	density = FALSE	
+
 /obj/machinery/porta_turret/syndicate/shootAt(mob/living/target)
 	if(istype(depotarea))
 		depotarea.list_add(target, depotarea.hostile_list)
