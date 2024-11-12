@@ -53,7 +53,7 @@ SUBSYSTEM_DEF(icon_smooth)
 	return SS_INIT_SUCCESS
 
 /datum/controller/subsystem/icon_smooth/proc/add_halt_source(datum/source)
-	halt_sources |= source
+	halt_sources += source
 
 /datum/controller/subsystem/icon_smooth/proc/remove_halt_source(datum/source)
 	halt_sources -= source
