@@ -97,15 +97,15 @@
 	for(var/obj/machinery/computer/prisoner/C in GLOB.prisoncomputer_list)
 		var/obj/item/paper/P = new /obj/item/paper(C.loc)
 		P.name = "[id] log - [occupant] [station_time_timestamp()]"
-		P.info =  "<center><b>[id] - Запись Службы Безопасности</b></center><br><hr><br>"
+		P.info =  "<center><b>[id] - Записи Службы Безопасности</b></center><br><hr><br>"
 		P.info += {"<center>[station_name()] - Служба Безопасности</center><br>
 						<center><small><b>Данные:</b></small></center><br>
-						<small><b>Запись сгенерирована в:</b>		[station_time_timestamp()]<br>
+						<small><b>Запись создана в:</b>		[station_time_timestamp()]<br>
 						<b>Заключён:</b>		[occupant]<br>
 						<b>На:</b>		[seconds_to_time(timetoset / 10)]<br>
 						<b>За:</b>	[crimes]<br>
 						<b>Сотрудник:</b>		[usr.name]<br><hr><br>
-						<small>Лог был создан автоматически, путём активации таймера камеры.</small>"}
+						<small>Записи были созданы автоматически путём активации таймера камеры.</small>"}
 
 		playsound(C.loc, "sound/goonstation/machines/printer_dotmatrix.ogg", 50, 1)
 		GLOB.cell_logs += P
@@ -123,7 +123,7 @@
 
 	var/timetext = seconds_to_time(timetoset / 10)
 	var/announcetext = "Заключён [occupant] ([prisoner_drank]) на [timetext] за: [crimes]. \
-	Сотрудник: [usr.name].[R ? "" : " Отсутствует запись об заключённом, требуется обновление вручную."]"
+	Сотрудник: [usr.name].[R ? "" : " Отсутствуют записи о заключённом, требуется обновление вручную."]"
 	Radio.autosay(announcetext, name, "Security")
 
 	// Notify the actual criminal being brigged. This is a QOL thing to ensure they always know the charges against them.
