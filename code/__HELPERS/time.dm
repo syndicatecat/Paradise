@@ -125,21 +125,16 @@
 /proc/seconds_to_time(var/seconds as num)
 	var/numSeconds = seconds % 60
 	var/numMinutes = (seconds - numSeconds) / 60
+	return "[numMinutes] [declension_ru(numMinutes, "минуту", "минуты", "минут")]"
 
-	var/sufM = .
-
-	var/list/nums1 = list(1, 21, 31, 41, 51)
-	var/list/nums2 = list(2, 3, 4, 22, 23, 24, 32, 33, 34, 42, 43, 44, 52, 53, 54)
-	var/list/nums3 = list(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 46, 47, 48, 49, 50, 55, 56, 57, 58, 59, 60)
-
-	if(numMinutes in nums1)
-		sufM = "минуту"
-	if (numMinutes in nums2)
-		sufM = "минуты"
-	if (numMinutes in nums3)
-		sufM = "минут"
-
-	return "[numMinutes] [sufM]"
+/proc/seconds_to_time_ru(num, single_name, double_name, multiple_name)
+	if(!isnum(num) || round(num) != num)
+		return double_name
+	if(((num % 10) == 1) && ((num % 100) != 11))
+		return single_name
+	if(((num % 10) in 2 to 4) && !((num % 100) in 12 to 14))
+		return double_name
+	return multiple_name
 
 //Take a value in seconds and makes it display like a clock
 /proc/seconds_to_clock(var/seconds as num)
@@ -164,24 +159,24 @@
 		second_adjusted = round(second)	//used to prevent '1 seconds' being shown
 		if(day || hour || minute)
 			if(second_adjusted == 1 && second >= 1)
-				second = " and 1 second"
+				second = " и 1 секунду"
 			else if(second > 1)
-				second = " and [second_adjusted] seconds"
+				second = " и [second_adjusted] секунд"
 			else	//shows a fraction if seconds is < 1
 				if(second_rounded) //no sense rounding again if it's already done
-					second = " and [second] seconds"
+					second = " и [second] секунд"
 				else
-					second = " and [round(second, 0.1)] seconds"
+					second = " и [round(second, 0.1)] секунд"
 		else
 			if(second_adjusted == 1 && second >= 1)
-				second = "1 second"
+				second = "1 секунду"
 			else if(second > 1)
-				second = "[second_adjusted] seconds"
+				second = "[second_adjusted] секунд"
 			else
 				if(second_rounded)
-					second = "[second] seconds"
+					second = "[second] секунд"
 				else
-					second = "[round(second, 0.1)] seconds"
+					second = "[round(second, 0.1)] секунд"
 	else
 		second = null
 
@@ -193,18 +188,18 @@
 	if(minute) //alot simpler from here since you don't have to worry about fractions
 		if(minute != 1)
 			if((day || hour) && second)
-				minute = ", [minute] minutes"
+				minute = ", [minute] минут"
 			else if((day || hour) && !second)
-				minute = " and [minute] minutes"
+				minute = " и [minute] минут"
 			else
-				minute = "[minute] minutes"
+				minute = "[minute] минут"
 		else
 			if((day || hour) && second)
-				minute = ", 1 minute"
+				minute = ", 1 минуту"
 			else if((day || hour) && !second)
-				minute = " and 1 minute"
+				minute = " и 1 минуту"
 			else
-				minute = "1 minute"
+				minute = "1 минута"
 	else
 		minute = null
 
@@ -216,27 +211,27 @@
 	if(hour)
 		if(hour != 1)
 			if(day && (minute || second))
-				hour = ", [hour] hours"
+				hour = ", [hour] часов"
 			else if(day && (!minute || !second))
-				hour = " and [hour] hours"
+				hour = " и [hour] часов"
 			else
-				hour = "[hour] hours"
+				hour = "[hour] часов"
 		else
 			if(day && (minute || second))
-				hour = ", 1 hour"
+				hour = ", 1 час"
 			else if(day && (!minute || !second))
-				hour = " and 1 hour"
+				hour = " и 1 час"
 			else
-				hour = "1 hour"
+				hour = "1 час"
 	else
 		hour = null
 
 	if(!day)
 		return "[hour][minute][second]"
 	if(day > 1)
-		day = "[day] days"
+		day = "[day] дня"
 	else
-		day = "1 day"
+		day = "1 день"
 
 	return "[day][hour][minute][second]"
 

@@ -44,7 +44,7 @@ export const BrigTimer = (props, context) => {
               <>
                 <Button
                   icon="lightbulb-o"
-                  content="Флеш"
+                  content="Ослепить флешером"
                   disabled={!data.isAllowed}
                   onClick={() => act('flash')}
                 />

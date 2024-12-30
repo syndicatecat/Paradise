@@ -51,7 +51,7 @@ const BrigCellsTable = ({ cells }) => (
       <Table.Cell header>Камера</Table.Cell>
       <Table.Cell header>Заключённый</Table.Cell>
       <Table.Cell header>Обвинения</Table.Cell>
-      <Table.Cell header>Сотрудник</Table.Cell>
+      <Table.Cell header>Провёл задержание</Table.Cell>
       <Table.Cell header>Срок</Table.Cell>
       <Table.Cell header>Осталось</Table.Cell>
       <Table.Cell header>Выпустить</Table.Cell>

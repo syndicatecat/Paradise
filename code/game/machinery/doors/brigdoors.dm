@@ -13,7 +13,15 @@
 	name = "door timer"
 	icon = 'icons/obj/status_display.dmi'
 	icon_state = "frame"
-	desc = "A remote control for a door."
+	desc = "Дистанционное управление камерой заключения."
+	ru_names = list(
+		NOMINATIVE = "Таймер",
+		GENITIVE = "Таймера",
+		DATIVE = "Таймера",
+		ACCUSATIVE = "Таймер",
+		INSTRUMENTAL = "Таймером",
+		PREPOSITIONAL = "Таймера"
+	)
 	req_access = list(ACCESS_BRIG)
 	anchored = TRUE    		// can't pick it up
 	density = FALSE			// can walk through it.
@@ -96,15 +104,15 @@
 
 	for(var/obj/machinery/computer/prisoner/C in GLOB.prisoncomputer_list)
 		var/obj/item/paper/P = new /obj/item/paper(C.loc)
-		P.name = "[id] log - [occupant] [station_time_timestamp()]"
+		P.name = "Запись [id] - [occupant] [station_time_timestamp()]"
 		P.info =  "<center><b>[id] - Записи Службы Безопасности</b></center><br><hr><br>"
 		P.info += {"<center>[station_name()] - Служба Безопасности</center><br>
 						<center><small><b>Данные:</b></small></center><br>
 						<small><b>Запись создана в:</b>		[station_time_timestamp()]<br>
-						<b>Заключён:</b>		[occupant]<br>
-						<b>На:</b>		[seconds_to_time(timetoset / 10)]<br>
-						<b>За:</b>	[crimes]<br>
-						<b>Сотрудник:</b>		[usr.name]<br><hr><br>
+						<b>Заключённый:</b>		[occupant]<br>
+						<b>Срок заключения:</b>		[seconds_to_time(timetoset / 10)]<br>
+						<b>Совершённые преступления:</b>	[crimes]<br>
+						<b>Задержание произвёл:</b>		[usr.name]<br><hr><br>
 						<small>Записи были созданы автоматически путём активации таймера камеры.</small>"}
 
 		playsound(C.loc, "sound/goonstation/machines/printer_dotmatrix.ogg", 50, 1)
@@ -121,14 +129,14 @@
 
 	var/datum/data/record/R = find_security_record("name", occupant)
 
-	var/timetext = seconds_to_time(timetoset / 10)
-	var/announcetext = "Заключён [occupant] ([prisoner_drank]) на [timetext] за: [crimes]. \
-	Сотрудник: [usr.name].[R ? "" : " Отсутствуют записи о заключённом, требуется обновление вручную."]"
+	var/timetext = seconds_to_time_ru(timetoset / 10)
+	var/announcetext = "Заключённый [occupant] ([prisoner_drank]) был заключён на [timetext] за следующие преступления: [crimes]. \
+	Задержание произвёл: [usr.name].[R ? "" : " Отсутствуют записи о заключённом, требуется обновление вручную."]"
 	Radio.autosay(announcetext, name, "Security")
 
 	// Notify the actual criminal being brigged. This is a QOL thing to ensure they always know the charges against them.
 	// Announcing it on radio isn't enough, as they're unlikely to have sec radio.
-	notify_prisoner("Вы были заключены на [timetext] за: [crimes]")
+	notify_prisoner("Вы были заключены на [timetext] за следующие преступления: [crimes]")
 
 	if(prisoner_trank != "unknown" && prisoner_trank != "Civilian")
 		SSjobs.notify_dept_head(prisoner_trank, announcetext)
@@ -144,16 +152,16 @@
 				rank = I.assignment
 		if(!R.fields["comments"] || !islist(R.fields["comments"])) //copied from security computer code because apparently these need to be initialized
 			R.fields["comments"] = list()
-		R.fields["comments"] += "Автоматически сгенерировано [name] в [GLOB.current_date_string] [station_time_timestamp()]<BR>Заключён на [timetoset/10] за \"[crimes]\"  [rank] [usr.name]."
+		R.fields["comments"] += "Автоматически сгенерировано [declent_ru(INSTRUMENTAL)] в [GLOB.current_date_string] [station_time_timestamp()]<BR>Заключён на [seconds_to_time(timetoset / 10)] за следующие преступления: [crimes]. Задержание произвёл: [usr.name] ([rank])."
 		update_all_mob_security_hud()
 	return 1
 
 /obj/machinery/door_timer/proc/notify_prisoner(notifytext)
 	for(var/mob/living/carbon/human/H in range(4, get_turf(src)))
 		if(occupant == H.name)
-			to_chat(H, "[src] проигрывает, \"[notifytext]\"")
+			to_chat(H, "[declent_ru(NOMINATIVE)] сообщает, \"[notifytext]\"")
 			return
-	atom_say("[src] проигрывает, \"[occupant]: [notifytext]\"")
+	atom_say("[declent_ru(NOMINATIVE)] сообщает, \"[occupant]: [notifytext]\"")
 
 
 //Main door timer loop, if it's timing and time is >0 reduce time by 1.
@@ -168,7 +176,7 @@
 			timer_end()
 			return PROCESS_KILL
 		if(timeleft() <= 0)
-			Radio.autosay("Время истекло. Вы свободны.", name, "Security", list(z))
+			Radio.autosay("Время заключения истекло. Заключённый освобождён.", name, "Security", list(z))
 			occupant = CELL_NONE
 			timer_end() // open doors, reset timer, clear status screen
 			return PROCESS_KILL
@@ -382,6 +390,16 @@
 		to_chat(usr, span_warning("Access denied."))
 		return
 	. = TRUE
+
+	var/seconds_to_time_ru = (num, single_name, double_name, multiple_name)
+		if(!isnum(num) || round(num) != num)
+			return double_name
+		if(((num % 10) == 1) && ((num % 100) != 11))
+			return single_name
+		if(((num % 10) in 2 to 4) && !((num % 100) in 12 to 14))
+			return double_name
+				return
+
 	switch(action)
 		if("prisoner_name")
 			if(params["prisoner_name"])
@@ -398,7 +416,7 @@
 				else
 					prisoner_hasrecord = FALSE
 		if("prisoner_charge")
-			var/new_charge = tgui_input_text(usr, "Обвинения:", name, prisoner_charge, encode = FALSE)
+			var/new_charge = tgui_input_text(usr, "Обвиняется в:", name, prisoner_charge, encode = FALSE)
 			if(isnull(new_charge))
 				return
 			prisoner_charge = new_charge
@@ -419,70 +437,57 @@
 			timer_start()
 		if("add_timer")
 			if(timing)
-				var/add_reason = sanitize(copytext(input(usr, ". Причина:", name, "") as text|null, 1, MAX_MESSAGE_LEN))
+				var/add_reason = sanitize(copytext(input(usr, "Причина:", name, "") as text|null, 1, MAX_MESSAGE_LEN))
 				if(!add_reason)
-					to_chat(usr, span_warning("Должна быть причина!"))
+					to_chat(usr, span_warning("Необходимо указать причину!"))
 					return FALSE
 				prisoner_time_add = input(usr, "Время, которое будет добавлено (в минутах):", name, prisoner_time_add) as num|null
 				prisoner_time_add = min(max(round(prisoner_time_add), 0), PERMABRIG_TIME)
-
-				var/sufM = .
-
-				var/list/nums1 = list(1, 21, 31, 41, 51)
-				var/list/nums2 = list(2, 3, 4, 22, 23, 24, 32, 33, 34, 42, 43, 44, 52, 53, 54)
-				var/list/nums3 = list(5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 45, 46, 47, 48, 49, 50, 55, 56, 57, 58, 59, 60)
-
-				if(prisoner_time_add in nums1)
-					sufM = "минуту"
-				if(prisoner_time_add in nums2)
-					sufM = "минуты"
-				if(prisoner_time_add in nums3)
-					sufM = "минут"
 
 				if(!prisoner_time_add)
 					to_chat(usr, span_warning("Время указывается числом!"))
 					return FALSE
 				prisoner_time_add = prisoner_time_add MINUTES
 				if(timetoset + prisoner_time_add >= PERMABRIG_TIME MINUTES)
-					notify_prisoner("Таймер превышает 60 минут. Переместите заключенного в пермабриг!")
+					notify_prisoner("Таймер превышает 60 минут. Переместите заключённого в пермабриг!")
 					return FALSE
 				timetoset = timetoset + prisoner_time_add
 				releasetime = releasetime + prisoner_time_add
-				var/addtext = isobserver(usr) ? "за: [add_reason]." : "сотрудником [usr.name]"
-				Radio.autosay("Время заключения [occupant] было увеличен на [prisoner_time_add / 600] [sufM] [addtext]", name, "Security", list(z))
-				notify_prisoner("Ваше время заключения было увеличено на [prisoner_time_add / 600] [sufM] [add_reason]")
+				Radio.autosay("Время заключения [occupant] было увеличено на [prisoner_time_add / 600] [declension_ru(prisoner_time_add / 600, "минуту", "минуты", "минут")] [addtext]", name, "Security", list(z))
+				Radio.autosay("Время заключения [occupant] было увеличен на [prisoner_time_add / 600] [seconds_to_time_ru] [addtext]", name, "Security", list(z))
+				notify_prisoner("Ваше время заключения было увеличено на [prisoner_time_add / 600] [declension_ru(prisoner_time_add / 600, "минуту", "минуты", "минут")] [add_reason]")
 				var/datum/data/record/R = find_security_record("name", occupant)
 				if(istype(R))
-					R.fields["comments"] += "Автоматически сгенерировано [name] в [GLOB.current_date_string] [station_time_timestamp()]Таймер увеличен на [prisoner_time_add / 600] [sufM] [addtext]"
+					R.fields["comments"] += "Автоматически сгенерировано [declent_ru(INSTRUMENTAL)] в [GLOB.current_date_string] [station_time_timestamp()]. Время заключения увеличено на [prisoner_time_add / 600] [declension_ru(prisoner_time_add / 600, "минуту", "минуты", "минут")] [addtext]"
 			else
 				. = FALSE
-
+				var/resettext = isobserver(usr) ? "по причине: [reset_reason]." : "сотрудником [usr.name] по причине: [reset_reason]."
 		if("restart_timer")
-			if(timing)
+				notify_prisoner("Ваш таймер был перезапущен по причине: [reset_reason].")
 				var/reset_reason = tgui_input_text(usr, "Причина перезапуска таймера:", name)
 				if(!reset_reason)
-					to_chat(usr, span_warning("Перезапуск отменён. Отсутствует причина."))
+					R.fields["comments"] += "Автоматически сгенерировано [declent_ru(INSTRUMENTAL)] в [GLOB.current_date_string] [station_time_timestamp()]. Таймер перезапущен [resettext]"
 					return FALSE
 				releasetime = world.timeofday + timetoset
-				var/resettext = isobserver(usr) ? "по причине: [reset_reason]." : "сотрудником [usr.name]"
+				var/resettext = isobserver(usr) ? "по причине: [reset_reason]." : "сотрудником [usr.name] по причине: [reset_reason]."
 				Radio.autosay("Таймер заключённого [occupant] был перезапущен [resettext]", name, "Security", list(z))
-				notify_prisoner("Ваш таймер был перезапущен по причине: '[reset_reason]'")
-				var/datum/data/record/R = find_security_record("name", occupant)
+				notify_prisoner("Ваш таймер был перезапущен по причине: [reset_reason].")
+				var/stoptext = isobserver(usr) ? "с помощью консоли управления камерой." : "сотрудником [usr.name]."
 				if(istype(R))
-					R.fields["comments"] += "Автоматически сгенерировано [name] в [GLOB.current_date_string] [station_time_timestamp()]Таймер перезапущен [resettext]"
+					R.fields["comments"] += "Автоматически сгенерировано [declent_ru(INSTRUMENTAL)] в [GLOB.current_date_string] [station_time_timestamp()]. Таймер перезапущен [resettext]"
 			else
 				. = FALSE
 		if("stop")
 			if(timing)
-				timer_end()
-				var/stoptext = isobserver(usr) ? "from cell control." : "сотрудником [usr.name]."
+					to_chat(usr, span_warning("Флешер перезаряжается!"))
+				var/stoptext = isobserver(usr) ? "с помощью консоли управления камерой." : "сотрудником [usr.name]."
 				Radio.autosay("Таймер принудительно остановлен [stoptext]", name, "Security", list(z))
 			else
 				. = FALSE
 		if("flash")
 			for(var/obj/machinery/flasher/flasher in targets)
 				if(flasher.last_flash && (flasher.last_flash + 15 SECONDS) > world.time)
-					to_chat(usr, span_warning("Флешер перезаряжается."))
+					to_chat(usr, span_warning("Флешер перезаряжается!"))
 				else
 					flasher.flash()
 		else
@@ -496,33 +501,97 @@
 
 
 /obj/machinery/door_timer/cell_1
-	name = "Камера 1"
+	name = "Cell 1"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 1"
 
 /obj/machinery/door_timer/cell_2
-	name = "Камера 2"
+	name = "Cell 2"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 2"
 
 /obj/machinery/door_timer/cell_3
-	name = "Камера 3"
+	name = "Cell 3"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 3"
 
 /obj/machinery/door_timer/cell_4
-	name = "Камера 4"
+	name = "Cell 4"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 4"
 
 /obj/machinery/door_timer/cell_5
-	name = "Камера 5"
+	name = "Cell 5"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 5"
 
 /obj/machinery/door_timer/cell_6
-	name = "Камера 6"
+	name = "Cell 6"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 6"
 
 /obj/machinery/door_timer/cell_7
-	name = "Камера 7"
+	name = "Cell 7"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 7"
 
 /obj/machinery/door_timer/cell_8
-	name = "Камера 8"
+	name = "Cell 8"
+	ru_names = list(
+		NOMINATIVE = "Камера 1",
+		GENITIVE = "Камеры 1",
+		DATIVE = "Камеры 1",
+		ACCUSATIVE = "Камера 1",
+		INSTRUMENTAL = "Камерой 1",
+		PREPOSITIONAL = "Камеры 1"
+	)
 	id = "Cell 8"
